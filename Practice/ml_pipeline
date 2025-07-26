@@ -1,0 +1,42 @@
+import time
+from typing import Callable, List
+
+# 🔁 Decorator: Log time and call details
+def log_transform(func: Callable):
+    def wrapper(x):
+        start = time.time()
+        result = func(x)
+        elapsed = time.time() - start
+        print(f"[LOG] {func.__name__}({x}) = {result} in {elapsed:.4f}s")
+        return result
+    return wrapper
+
+# 📦 Closure: Make a stateful transformer
+def make_transform_callback(transform_fn: Callable):
+    count = 0
+
+    @log_transform  # Decorator wraps the callback
+    def callback(x):
+        nonlocal count
+        count += 1
+        print(f"[STATE] Transformed sample #{count}")
+        return transform_fn(x)
+
+    return callback
+
+# 🚀 Pipeline engine: applies callback to each item
+def run_pipeline(data: List[float], transformer: Callable[[float], float]) -> List[float]:
+    return [transformer(x) for x in data]
+
+# 🎯 Example: Normalize between 0 and 1
+def normalize(x: float) -> float:
+    return x / 100
+
+# 🔧 Setup pipeline
+raw_data = [23, 47, 88, 99, 56]
+transform = make_transform_callback(normalize)
+
+# ▶️ Run
+processed_data = run_pipeline(raw_data, transform)
+
+print("\nFinal processed data:", processed_data)
